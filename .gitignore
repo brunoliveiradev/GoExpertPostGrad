@@ -1,0 +1,43 @@
+# Binaries, build files, etc.
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+*.test
+*.out
+*.o
+*.a
+*.build
+*.swp
+
+# Folders
+_obj
+_test
+
+# Architecture specific
+*_amd64.*
+*_386.*
+*_arm.*
+*_arm64.*
+
+# IDE/Editor folders
+.vscode
+.idea
+
+# Dependency directories (remove the comment below if you are using Go Modules)
+#vendor/
+
+# Mac OS files
+.DS_Store
+
+# Log files
+*.log
+
+# Test coverage
+coverage.out
+
+# Golang
+*.mod
+*.modsum
+*.modverify

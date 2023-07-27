@@ -21,17 +21,14 @@ type Account interface {
 	Disable()
 }
 
-
 func (u User) Disable() {
 	u.Active = false
 	fmt.Printf("User %s is disabled \n", u.Name)
 }
 
-
 func DisableAccount(acc Account) {
 	acc.Disable()
 }
-
 
 func main() {
 	twitter := User{

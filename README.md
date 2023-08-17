@@ -28,6 +28,8 @@ Some highlights of what the course covers:
 9. **Databases**: Detailed study of how Golang interacts with databases and ORM implementation 🗃️
 10. **Deployment**: Emphasis on deploying applications using Docker and Kubernetes 🚢
 
+** This is a work in progress. The repository will be updated as the course progresses. **
+
 ## Table of Contents
 
 - [Installation](#installation)

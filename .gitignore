@@ -38,6 +38,6 @@ _test
 coverage.out
 
 # Golang
-*.mod
-*.modsum
-*.modverify
+#*.mod
+#*.modsum
+#*.modverify

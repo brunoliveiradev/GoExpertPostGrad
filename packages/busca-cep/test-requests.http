@@ -1,0 +1,46 @@
+### Send GET request with query parameters
+GET http://localhost:8080/busca?cep=01001000
+Accept: application/json
+
+> {%
+    client.test("Request executed successfully", function () {
+        client.assert(response.status === 200, "Response status is not 200");
+    });
+%}
+
+### Send GET request with empty query parameters
+GET http://localhost:8080/busca
+
+> {%
+    client.test("Bad Request", function () {
+        client.assert(response.status === 400, "Response status is not 400");
+        client.assert(response.body.trim() === "CEP is required", "Response body is not 'CEP is required'");
+    });
+%}
+
+### Send GET request and receive not found
+GET http://localhost:8080/busca-cep?cep=01001000
+
+> {%
+    client.test("Not found", function () {
+        client.assert(response.status === 404, "Response status is not 404");
+    });
+%}
+
+
+### Send POST request with json body
+POST http://localhost:8080/busca?cep=01001000
+Content-Type: application/json
+
+{
+  "id": 999,
+  "value": "content"
+}
+
+> {%
+    client.test("Method Not Allowed", function () {
+        client.assert(response.status === 405, "Response status is not 405");
+        client.assert(response.body.trim() === "Method not allowed", "Response body is not 'Method not allowed'");
+
+    });
+%}

@@ -3,7 +3,6 @@ package main
 import (
 	"encoding/json"
 	"errors"
-	"fmt"
 	"github.com/brunoliveiradev/GoExpertPostGrad/packages/busca-cep/domain"
 	"io"
 	"log"
@@ -19,7 +18,7 @@ const (
 	localPort = ":8080"
 )
 
-var httpClient = &http.Client{Timeout: 10 * time.Second}
+var httpClient = &http.Client{Timeout: 5 * time.Second}
 
 func main() {
 	http.HandleFunc(getPath, BuscaCepHandler)
@@ -52,7 +51,13 @@ func BuscaCepHandler(w http.ResponseWriter, r *http.Request) {
 	cep, err := BuscaCep(cepParam)
 	if err != nil {
 		log.Printf("Error fetching CEP: %v", err)
-		http.Error(w, "Internal server error", http.StatusInternalServerError)
+
+		var netErr net.Error
+		if errors.As(err, &netErr) && netErr.Timeout() {
+			http.Error(w, "Request timed out", http.StatusRequestTimeout)
+		} else {
+			http.Error(w, "Internal server error", http.StatusInternalServerError)
+		}
 		return
 	}
 
@@ -72,10 +77,9 @@ func BuscaCep(cep string) (*domain.ViaCEP, error) {
 	resp, err := httpClient.Get("https://viacep.com.br/ws/" + cep + "/json/")
 	if err != nil {
 		var netErr net.Error
-		ok := errors.As(err, &netErr)
-		if ok && netErr.Timeout() {
+		if errors.As(err, &netErr) && netErr.Timeout() {
 			log.Printf("Request timed out: %v", err)
-			return nil, fmt.Errorf("request timed out")
+			return nil, netErr
 		}
 		return nil, err
 	}

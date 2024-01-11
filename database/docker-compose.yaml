@@ -1,0 +1,22 @@
+version: '3.4'
+
+services:
+  goexpert-mysql:
+    image: mysql:5.7
+    container_name: goexpert-mysql
+    restart: always
+    platform: linux/x86_64
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: goexpert
+      MYSQL_USER: admin
+      MYSQL_PASSWORD: root
+    ports:
+      - "3306:3306"
+    volumes:
+      - goexpert-mysql-data:/var/lib/mysql
+      - ./init-db.sql:/docker-entrypoint-initdb.d/init-db.sql
+
+
+volumes:
+  goexpert-mysql-data:

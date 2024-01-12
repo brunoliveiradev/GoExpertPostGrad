@@ -6,16 +6,18 @@ import (
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/google/uuid"
 	"log"
+	"math/rand"
 )
 
 type Product struct {
-	Id    string
+	ID    string
 	Name  string
 	Price float64
 }
 
 type ProductRepository interface {
 	InsertProduct(product *Product) error
+	UpdateProduct(product *Product) error
 }
 
 type ProductRepositoryDB struct {
@@ -34,13 +36,27 @@ func (p *ProductRepositoryDB) InsertProduct(product *Product) error {
 		}
 	}(stmt)
 
-	_, err = stmt.Exec(product.Id, product.Name, product.Price)
+	_, err = stmt.Exec(product.ID, product.Name, product.Price)
 	return err
+}
+
+func (p *ProductRepositoryDB) UpdateProduct(product *Product) error {
+	stmt, err := p.DB.Prepare("UPDATE products SET name = ?, price = ? WHERE id = ?")
+	if err != nil {
+		return err
+	}
+	defer stmt.Close()
+
+	_, err = stmt.Exec(product.Name, product.Price, product.ID)
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 func NewProduct(name string, price float64) *Product {
 	return &Product{
-		Id:    uuid.New().String(),
+		ID:    uuid.New().String(),
 		Name:  name,
 		Price: price,
 	}
@@ -53,14 +69,22 @@ func main() {
 	}
 	defer db.Close()
 
-	product := NewProduct("Notebook", 1980.90)
+	product := NewProduct("Caneta Azul", rand.Float64())
 
 	repo := &ProductRepositoryDB{DB: db}
 	err = insertNewProduct(repo, product)
 	if err != nil {
 		log.Fatalf("Failed to insert product: %v", err)
 	}
-	fmt.Println("Product inserted successfully with ID: ", product.Id)
+	fmt.Printf("Product inserted successfully with name '%s' and price: %.2f\n", product.Name, product.Price)
+
+	product.Price = 1990.90
+	err = updateProduct(repo, product)
+	if err != nil {
+		log.Fatalf("Failed to update product: %v", err)
+	}
+	fmt.Printf("Product '%s' updated successfully to new price: %.2f\n\n", product.Name, product.Price)
+
 }
 
 func createConnectionWithLocalDatabase() (*sql.DB, error) {
@@ -77,10 +101,14 @@ func createConnectionWithLocalDatabase() (*sql.DB, error) {
 	if err = db.Ping(); err != nil {
 		return nil, err
 	}
-	fmt.Println("Database connected and pinged successfully")
+	fmt.Println("Database connected and pinged successfully!")
 	return db, nil
 }
 
 func insertNewProduct(repo *ProductRepositoryDB, product *Product) error {
 	return repo.InsertProduct(product)
+}
+
+func updateProduct(repo *ProductRepositoryDB, product *Product) error {
+	return repo.UpdateProduct(product)
 }

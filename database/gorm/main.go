@@ -26,6 +26,8 @@ func main() {
 	findWithLimitAndOffset(db, 3, 1)
 	findWithWereByPrice(db, 2000)
 	findWithLike(db, "%Azul Caneta%")
+	updateProductPriceGivenID(db, uuid.MustParse("cef49218-abd9-41af-b26a-6a0320f9c8d3"), 1111)
+	//deleteProductGivenID(db, uuid.MustParse("b46094f0-0d27-44d6-b101-1d270d9d2f24"))
 }
 
 func createProducts(db *gorm.DB) {
@@ -94,4 +96,21 @@ func findWithLike(db *gorm.DB, name string) {
 	for _, p := range products {
 		fmt.Println(p)
 	}
+}
+
+func updateProductPriceGivenID(db *gorm.DB, id uuid.UUID, newPrice float64) {
+	var p Product
+	db.First(&p, "id = ?", id)
+
+	p.Price = newPrice
+	db.Save(&p)
+
+	fmt.Println("Product updated", p)
+}
+
+func deleteProductGivenID(db *gorm.DB, id uuid.UUID) {
+	var p Product
+	db.First(&p, "id = ?", id)
+	fmt.Println("Product deleted", p)
+	db.Delete(&p)
 }

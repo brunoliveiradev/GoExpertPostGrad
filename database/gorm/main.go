@@ -22,20 +22,10 @@ func main() {
 	}
 
 	//createProducts(db)
-
-	// select one
-	var product Product
-	db.First(&product, "name = ?", "Caneta Azul")
-	fmt.Println(product)
-
-	// select all
-	var products []Product
-	db.Find(&products)
-
-	for _, p := range products {
-		fmt.Println(p)
-	}
-
+	//findProducts(db)
+	findWithLimitAndOffset(db, 3, 1)
+	findWithWereByPrice(db, 2000)
+	findWithLike(db, "%Azul Caneta%")
 }
 
 func createProducts(db *gorm.DB) {
@@ -59,4 +49,49 @@ func createProducts(db *gorm.DB) {
 		},
 	}
 	db.Create(&products)
+}
+
+func findProducts(db *gorm.DB) {
+	// select one
+	var product Product
+	db.First(&product, "name = ?", "Caneta Azul")
+	fmt.Println(product)
+
+	// select all
+	var products []Product
+	db.Find(&products)
+
+	for _, p := range products {
+		fmt.Println(p)
+	}
+}
+
+func findWithLimitAndOffset(db *gorm.DB, limit, offset int) {
+	fmt.Println("Products with limit", limit, "and offset", offset)
+	var products []Product
+	db.Limit(limit).Offset(offset).Find(&products)
+
+	for _, p := range products {
+		fmt.Println(p)
+	}
+}
+
+func findWithWereByPrice(db *gorm.DB, price float64) {
+	fmt.Println("Products with price greater than", price)
+	var products []Product
+	db.Where("price > ?", price).Find(&products)
+
+	for _, p := range products {
+		fmt.Println(p)
+	}
+}
+
+func findWithLike(db *gorm.DB, name string) {
+	fmt.Println("Products with name like", name)
+	var products []Product
+	db.Where("name LIKE ?", name).Find(&products)
+
+	for _, p := range products {
+		fmt.Println(p)
+	}
 }

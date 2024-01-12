@@ -21,6 +21,7 @@ type ProductRepository interface {
 	UpdateProduct(product *Product) error
 	FindProductByID(id string) (*Product, error)
 	FindAllProducts() ([]*Product, error)
+	DeleteProduct(id string) error
 }
 
 type ProductRepositoryDB struct {
@@ -94,6 +95,20 @@ func (p *ProductRepositoryDB) FindAllProducts() ([]*Product, error) {
 	return products, nil
 }
 
+func (p *ProductRepositoryDB) DeleteProduct(id string) error {
+	stmt, err := p.DB.Prepare("DELETE FROM products WHERE id = ?")
+	if err != nil {
+		return err
+	}
+	defer stmt.Close()
+
+	_, err = stmt.Exec(id)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 func NewProduct(name string, price float64) *Product {
 	return &Product{
 		ID:    uuid.New().String(),
@@ -109,7 +124,7 @@ func main() {
 	}
 	defer db.Close()
 
-	product := NewProduct("Smartphone", rand.Float64())
+	product := NewProduct("Caneta Azul", rand.Float64())
 
 	repo := &ProductRepositoryDB{DB: db}
 	err = insertNewProduct(repo, product)
@@ -138,6 +153,11 @@ func main() {
 	fmt.Printf("Found %d products\n", len(products))
 	for _, p := range products {
 		fmt.Printf("Product '%s' found with price R$ %.2f\n", p.Name, p.Price)
+	}
+
+	err = deleteProduct(repo, product.ID)
+	if err != nil {
+		log.Fatalf("Failed to delete product: %v", err)
 	}
 }
 
@@ -173,4 +193,8 @@ func findProductByID(repo *ProductRepositoryDB, id string) (*Product, error) {
 
 func findAllProducts(repo *ProductRepositoryDB) ([]*Product, error) {
 	return repo.FindAllProducts()
+}
+
+func deleteProduct(repo *ProductRepositoryDB, id string) error {
+	return repo.DeleteProduct(id)
 }

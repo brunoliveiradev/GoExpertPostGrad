@@ -2,6 +2,7 @@ package main
 
 import (
 	"database/sql"
+	"errors"
 	"fmt"
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/google/uuid"
@@ -18,6 +19,8 @@ type Product struct {
 type ProductRepository interface {
 	InsertProduct(product *Product) error
 	UpdateProduct(product *Product) error
+	FindProductByID(id string) (*Product, error)
+	FindAllProducts() ([]*Product, error)
 }
 
 type ProductRepositoryDB struct {
@@ -54,6 +57,43 @@ func (p *ProductRepositoryDB) UpdateProduct(product *Product) error {
 	return nil
 }
 
+func (p *ProductRepositoryDB) FindProductByID(id string) (*Product, error) {
+	stmt, err := p.DB.Prepare("SELECT id, name, price FROM products WHERE id = ?")
+	if err != nil {
+		return nil, err
+	}
+	defer stmt.Close()
+
+	var product Product
+	err = stmt.QueryRow(id).Scan(&product.ID, &product.Name, &product.Price)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, fmt.Errorf("product with ID %s not found", id)
+		}
+		return nil, err
+	}
+	return &product, nil
+}
+
+func (p *ProductRepositoryDB) FindAllProducts() ([]*Product, error) {
+	rows, err := p.DB.Query("SELECT id, name, price FROM products LIMIT 100")
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var products []*Product
+	for rows.Next() {
+		var p Product
+		err := rows.Scan(&p.ID, &p.Name, &p.Price)
+		if err != nil {
+			return nil, err
+		}
+		products = append(products, &p)
+	}
+	return products, nil
+}
+
 func NewProduct(name string, price float64) *Product {
 	return &Product{
 		ID:    uuid.New().String(),
@@ -69,22 +109,36 @@ func main() {
 	}
 	defer db.Close()
 
-	product := NewProduct("Caneta Azul", rand.Float64())
+	product := NewProduct("Smartphone", rand.Float64())
 
 	repo := &ProductRepositoryDB{DB: db}
 	err = insertNewProduct(repo, product)
 	if err != nil {
 		log.Fatalf("Failed to insert product: %v", err)
 	}
-	fmt.Printf("Product inserted successfully with name '%s' and price: %.2f\n", product.Name, product.Price)
+	fmt.Printf("Product inserted successfully with name '%s' and price: R$ %.2f\n", product.Name, product.Price)
 
 	product.Price = 1990.90
 	err = updateProduct(repo, product)
 	if err != nil {
 		log.Fatalf("Failed to update product: %v", err)
 	}
-	fmt.Printf("Product '%s' updated successfully to new price: %.2f\n\n", product.Name, product.Price)
+	fmt.Printf("Product '%s' updated successfully to new price: R$ %.2f\n", product.Name, product.Price)
 
+	product, err = findProductByID(repo, product.ID)
+	if err != nil {
+		log.Fatalf("Failed to find product: %v", err)
+	}
+	fmt.Printf("Product '%s' found with price R$ %.2f\n", product.Name, product.Price)
+
+	products, err := findAllProducts(repo)
+	if err != nil {
+		log.Fatalf("Failed to find products: %v", err)
+	}
+	fmt.Printf("Found %d products\n", len(products))
+	for _, p := range products {
+		fmt.Printf("Product '%s' found with price R$ %.2f\n", p.Name, p.Price)
+	}
 }
 
 func createConnectionWithLocalDatabase() (*sql.DB, error) {
@@ -111,4 +165,12 @@ func insertNewProduct(repo *ProductRepositoryDB, product *Product) error {
 
 func updateProduct(repo *ProductRepositoryDB, product *Product) error {
 	return repo.UpdateProduct(product)
+}
+
+func findProductByID(repo *ProductRepositoryDB, id string) (*Product, error) {
+	return repo.FindProductByID(id)
+}
+
+func findAllProducts(repo *ProductRepositoryDB) ([]*Product, error) {
+	return repo.FindAllProducts()
 }

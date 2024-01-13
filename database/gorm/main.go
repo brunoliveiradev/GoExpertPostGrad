@@ -14,7 +14,7 @@ type Product struct {
 }
 
 func main() {
-	dsn := "root:root@tcp(localhost:3306)/goexpert"
+	dsn := "root:root@tcp(localhost:3306)/goexpert?charset=utf8mb4&parseTime=True&loc=Local"
 	db, err := gorm.Open(mysql.Open(dsn), &gorm.Config{})
 
 	if err != nil {

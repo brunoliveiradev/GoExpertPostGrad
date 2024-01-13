@@ -16,3 +16,5 @@ INSERT INTO products (id, name, price)
 VALUES ('4', 'CANETA CANETA', 40.96);
 INSERT INTO products (id, name, price)
 VALUES ('5', 'CANETA AZUL', 51.20);
+INSERT INTO products (id, name, price)
+VALUES ('6', 'AZUL CANETA', 61.20);

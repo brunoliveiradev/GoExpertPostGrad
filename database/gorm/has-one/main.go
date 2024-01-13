@@ -46,7 +46,7 @@ func main() {
 
 	items := findAllItems(db)
 	for _, item := range *items {
-		fmt.Println("Item:", item.Name, "with Category:", item.Category.Name, "and Serial Number ID", item.SerialNumber.Number, "created successfully!")
+		fmt.Println("Item:", item.Name, "with Category:", item.Category.Name, "and Serial Number ID", item.SerialNumber.Number, "found!")
 	}
 
 }

@@ -4,14 +4,17 @@ import (
 	"fmt"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
+	"math/rand"
+	"strconv"
 )
 
 type Item struct {
-	ID         int `gorm:"primaryKey"`
-	Name       string
-	Price      float64
-	CategoryID int
-	Category   Category
+	ID           int `gorm:"primaryKey"`
+	Name         string
+	Price        float64
+	CategoryID   int
+	Category     Category
+	SerialNumber SerialNumber // Has one
 	gorm.Model
 }
 
@@ -21,29 +24,32 @@ type Category struct {
 	Items []Item // Has many relationship
 }
 
-func main() {
-	dsn := "root:root@tcp(localhost:3306)/goexpert?charset=utf8mb4&parseTime=True&loc=Local"
-	db, err := gorm.Open(mysql.Open(dsn), &gorm.Config{})
+type SerialNumber struct {
+	ID     int `gorm:"primaryKey"`
+	Number string
+	ItemID int
+}
 
-	if err != nil {
-		panic("failed to connect database")
-	}
-	db.AutoMigrate(&Item{}, &Category{})
+func main() {
+	db, _ := gorm.Open(mysql.Open("root:root@tcp(localhost:3306)/goexpert?charset=utf8mb4&parseTime=True&loc=Local"), &gorm.Config{})
+	db.AutoMigrate(&Item{}, &Category{}, &SerialNumber{})
 
 	category := createCategory(db, "Car")
 
-	createItem(db, &Item{Name: "BMW", Price: 999999.99, CategoryID: category.ID})
+	item := createItem(db, &Item{Name: "BMW", Price: 1999.99, Category: *category})
+
+	createSerialNumber(db, &SerialNumber{Number: strconv.Itoa(rand.Int()), ItemID: item.ID})
 
 	items := findAllItems(db)
 	for _, item := range *items {
-		fmt.Println("Item:", item.Name, "with Category:", item.Category.Name, "found!")
+		fmt.Println("Item:", item.Name, "with Category:", item.Category.Name, "and Serial Number", item.SerialNumber.Number, "found!")
 	}
 
 	categories := findAllCategories(db)
 	for _, category := range *categories {
 		fmt.Println("Category", category.Name, "with Items:")
 		for _, item := range category.Items {
-			fmt.Println("Item:", item.Name)
+			fmt.Println("Item:", item.Name, "SN:", item.SerialNumber.Number)
 		}
 	}
 }
@@ -59,15 +65,22 @@ func createItem(db *gorm.DB, item *Item) *Item {
 	return item
 }
 
+func createSerialNumber(db *gorm.DB, serialNumber *SerialNumber) *SerialNumber {
+	db.Create(serialNumber)
+	return serialNumber
+}
+
 func findAllItems(db *gorm.DB) *[]Item {
 	var items []Item
-	db.Preload("Category").Find(&items)
+	db.Preload("Category").Preload("SerialNumber").Find(&items)
 	return &items
 }
 
 func findAllCategories(db *gorm.DB) *[]Category {
 	var categories []Category
-	err := db.Model(&Category{}).Preload("Items").Find(&categories).Error
+	// Preload() is used to load the relationship data
+	// Items.SerialNumber is used to load the relationship data of the relationship
+	err := db.Model(&Category{}).Preload("Items.SerialNumber").Find(&categories).Error
 	if err != nil {
 		panic(err)
 	}

@@ -41,3 +41,5 @@ coverage.out
 #*.mod
 #*.modsum
 #*.modverify
+
+challenges/1-client-server-api/pkg

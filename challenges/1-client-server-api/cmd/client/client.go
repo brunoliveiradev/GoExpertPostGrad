@@ -44,7 +44,7 @@ func GetCotacao(ctx context.Context) error {
 		return errors.New("O servidor demorou demais pra responder")
 	}
 
-	return saveToFile("challenges/1-client-server-api/output/usdbrl-bid.txt", string(respBody))
+	return saveToFile("challenges/1-client-server-api/output/cotacao.txt", string(respBody))
 }
 
 func saveToFile(filename, data string) error {

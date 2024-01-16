@@ -5,6 +5,8 @@ import (
 	"database/sql"
 	"github.com/brunoliveiradev/GoExpertPostGrad/challenges/1-client-server-api/pkg/domain"
 	_ "github.com/mattn/go-sqlite3"
+	"os"
+	"path/filepath"
 	"sync"
 	"time"
 )
@@ -17,7 +19,18 @@ var (
 
 func InitSqliteDB() error {
 	var err error
-	db, err = sql.Open("sqlite3", "challenges/1-client-server-api/cmd/server/database.db")
+
+	dbPath := "server/database/database.db"
+	dbDir := filepath.Dir(dbPath)
+
+	if _, err := os.Stat(dbDir); os.IsNotExist(err) {
+		err = os.MkdirAll(dbDir, 0755)
+		if err != nil {
+			return err
+		}
+	}
+
+	db, err = sql.Open("sqlite3", dbPath)
 	if err != nil {
 		return err
 	}

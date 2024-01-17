@@ -33,14 +33,14 @@ func GetCotacaoHandler(w http.ResponseWriter, r *http.Request) {
 
 	currencyInfo, err := GetLastCurrencyInfoUSDBRL(ctx)
 	if err != nil {
-		log.Printf("Error fetching GetLastCurrencyInfo: %v", err)
+		log.Printf("[SERVER][ERROR] Error fetching GetLastCurrencyInfo: %v", err)
 		util.HandleError(w, err)
 		return
 	}
 
 	err = database.SaveCurrencyInfo(ctx, currencyInfo)
 	if err != nil {
-		log.Printf("Error saving CurrencyInfo: %v", err)
+		log.Printf("[SERVER][ERROR] Error saving CurrencyInfo: %v", err)
 		util.HandleError(w, err)
 		return
 	}
@@ -49,7 +49,7 @@ func GetCotacaoHandler(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		log.Printf("Error formatting currencyInfo as JSON: %v", err)
 	} else {
-		fmt.Println("Salvei toda a cotação no banco de dados:\n", string(jsonCurrencyInfo))
+		fmt.Println("[SERVER][INFO] Data saved in database:\n", string(jsonCurrencyInfo))
 	}
 
 	w.Header().Set("Content-Type", "application/json")
@@ -70,6 +70,7 @@ func GetLastCurrencyInfoUSDBRL(ctx context.Context) (*domain.CurrencyInfo, error
 	if err != nil {
 		return nil, err
 	}
+	log.Println("[SERVER][INFO] Making request to AwesomeApi at", req.URL)
 
 	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
@@ -84,10 +85,10 @@ func GetLastCurrencyInfoUSDBRL(ctx context.Context) (*domain.CurrencyInfo, error
 
 	var currencies *map[string]domain.CurrencyInfo
 	if err := json.NewDecoder(resp.Body).Decode(&currencies); err != nil {
-		log.Printf("Error decoding JSON: %v", err)
+		log.Printf("[SERVER][ERROR] Error decoding JSON: %v", err)
 		return nil, err
 	}
 	currency := (*currencies)["USDBRL"]
-
+	log.Println("[SERVER][INFO] AwesomeApi response status:", resp.Status, "response body:", currency)
 	return &currency, nil
 }

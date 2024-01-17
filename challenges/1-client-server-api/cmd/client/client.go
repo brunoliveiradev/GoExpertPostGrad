@@ -21,29 +21,29 @@ func GetCotacao(ctx context.Context) error {
 		return err
 	}
 
+	log.Println("[CLIENT][INFO] Making request to server at", req.URL)
 	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
 		var netErr net.Error
 		if errors.As(err, &netErr) && netErr.Timeout() {
-			log.Printf("Request timed out: %v", err)
+			log.Printf("[CLIENT][ERROR] Request timed out: %v", err)
 			return netErr
 		}
 		return err
 	}
 	defer resp.Body.Close()
-	log.Println("Fiz a chamada pro servidor e recebi a resposta:", resp.Status)
 
 	respBody, err := io.ReadAll(resp.Body)
 	if err != nil {
-		log.Printf("Error reading response body: %v", err)
+		log.Printf("[CLIENT][ERROR] Error reading response body: %v", err)
 		return err
 	}
 
 	if string(respBody) == "Request timed out" {
-		log.Println("O servidor demorou demais pra responder")
+		log.Println("[CLIENT][ERROR] O servidor demorou demais pra responder")
 		return errors.New("O servidor demorou demais pra responder")
 	}
-
+	log.Println("[CLIENT][INFO] Server response status:", resp.Status, "response body:", string(respBody))
 	return saveToFile("challenges/1-client-server-api/output/cotacao.txt", string(respBody))
 }
 

@@ -34,7 +34,14 @@ Você precisará nos entregar dois sistemas em Go:
 
 ### Como executar
 
-- Para executar a solução, execute o comando `go run main.go` dentro da pasta `challenges/1-client-server-api/cmd`.
-- O arquivo `cotacao.txt` será criado na pasta `challenges/1-client-server-api/output/cotacao.txt` com a cotação atual
-  do dólar.
-- A solução foi feita para cada execução do servidor, o banco de dados é criado e populado com a cotação atual do dólar.
+1. Certifique-se de ter o Go instalado em seu sistema.
+2. Abra o terminal ou prompt de comando.
+3. Navegue até o diretório `challenges/1-client-server-api/cmd` onde o `main.go` está localizado.
+4. Execute o comando `go run main.go`.
+5. O programa iniciará o servidor e o cliente automaticamente.
+    - O servidor começará a escutar na porta 8080.
+    - O cliente fará uma requisição ao servidor para obter a cotação do dólar.
+6. A cotação será salva em um arquivo `cotacao.txt` no diretório `challenges/1-client-server-api/output`.
+7. Logs relevantes serão exibidos no terminal durante a execução.
+8. O programa será encerrado automaticamente após a execução.
+9. Para executar novamente, repita os passos 3 e 4.

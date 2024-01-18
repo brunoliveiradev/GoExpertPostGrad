@@ -41,7 +41,7 @@ Você precisará nos entregar dois sistemas em Go:
 5. O programa iniciará o servidor e o cliente automaticamente.
     - O servidor começará a escutar na porta 8080.
     - O cliente fará uma requisição ao servidor para obter a cotação do dólar.
-6. A cotação será salva em um arquivo `cotacao.txt` no diretório `challenges/1-client-server-api/output`.
+6. A cotação será salva em um arquivo `cotacao.txt` no diretório `challenges/1-client-server-api/cmd/output`.
 7. Logs relevantes serão exibidos no terminal durante a execução.
 8. O programa será encerrado automaticamente após a execução.
 9. Para executar novamente, repita os passos 3 e 4.

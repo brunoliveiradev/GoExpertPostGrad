@@ -35,5 +35,5 @@ func main() {
 		log.Fatalf("[ERROR] Error making request: %v", err)
 	}
 
-	log.Println("[DEBUG] Cotação salva com sucesso em 'challenges/1-client-server-api/output'!")
+	log.Println("[DEBUG] Cotação salva com sucesso em 'challenges/1-client-server-api/cmd/output'!")
 }

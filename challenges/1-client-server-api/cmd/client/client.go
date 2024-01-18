@@ -9,6 +9,7 @@ import (
 	"net"
 	"net/http"
 	"os"
+	"path"
 	"time"
 )
 
@@ -44,10 +45,18 @@ func GetCotacao(ctx context.Context) error {
 		return errors.New("O servidor demorou demais pra responder")
 	}
 	log.Println("[CLIENT][INFO] Server response status:", resp.Status, "response body:", string(respBody))
-	return saveToFile("challenges/1-client-server-api/output/cotacao.txt", string(respBody))
+	return saveToFile("output/cotacao.txt", string(respBody))
 }
 
 func saveToFile(filename, data string) error {
+	// Create the directory if it does not exist
+	dir := path.Dir(filename)
+	if _, err := os.Stat(dir); os.IsNotExist(err) {
+		err = os.MkdirAll(dir, 0755)
+		if err != nil {
+			return err
+		}
+	}
 	// Open the file in append mode, If it does not exist, create it
 	file, err := os.OpenFile(filename, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
 	if err != nil {

@@ -2,6 +2,11 @@ POST http://localhost:8000/products
 Content-Type: application/json
 
 {
-  "name": "Product",
-  "price": 1999.99
+  "name": "Smartphone",
+  "price": 1299.99
 }
+
+
+###
+# GET /products
+GET http://localhost:8000/products/7295524c-9a02-40ec-9332-7da34c9f253d

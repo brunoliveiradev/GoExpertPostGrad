@@ -2,9 +2,11 @@ package handlers
 
 import (
 	"encoding/json"
+	"errors"
 	"github.com/brunoliveiradev/courseGoExpert/APIs/internal/domain"
 	"github.com/brunoliveiradev/courseGoExpert/APIs/internal/dto"
 	"github.com/brunoliveiradev/courseGoExpert/APIs/internal/infra/database"
+	"github.com/go-chi/chi"
 	"net/http"
 )
 
@@ -35,4 +37,25 @@ func (h *ProductHandler) CreateProduct(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	w.WriteHeader(http.StatusCreated)
+}
+
+func (h *ProductHandler) GetProduct(w http.ResponseWriter, r *http.Request) {
+	id := chi.URLParam(r, "id")
+
+	product, err := h.ProductDB.FindByID(id)
+	if err != nil {
+		if errors.Is(err, database.ErrProductNotFound) {
+			w.WriteHeader(http.StatusNotFound)
+			return
+		}
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	if err := json.NewEncoder(w).Encode(product); err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
 }

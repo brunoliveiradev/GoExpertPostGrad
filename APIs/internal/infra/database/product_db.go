@@ -52,7 +52,8 @@ func (p *Product) FindAll(page int, limit int, sort string) ([]*domain.Product, 
 	if sort != "asc" && sort != "desc" {
 		sort = "asc"
 	}
-	if page != 0 && limit == 0 {
+	if page == 0 && limit == 0 {
+		page = 1
 		limit = 10
 	}
 

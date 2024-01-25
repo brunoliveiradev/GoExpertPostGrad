@@ -10,6 +10,7 @@ import (
 	"github.com/go-chi/chi"
 	"log"
 	"net/http"
+	"strconv"
 )
 
 type ProductHandler struct {
@@ -103,4 +104,61 @@ func (h *ProductHandler) UpdateProduct(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	w.WriteHeader(http.StatusOK)
+}
+
+func (h *ProductHandler) DeleteProduct(w http.ResponseWriter, r *http.Request) {
+	id := chi.URLParam(r, "id")
+	if id == "" {
+		http.Error(w, "Bad request", http.StatusBadRequest)
+		return
+	}
+
+	_, err := entity.ParseID(id)
+	if err != nil {
+		log.Printf("Error parsing ID: %v", err)
+		http.Error(w, "Bad request", http.StatusBadRequest)
+		return
+	}
+
+	err = h.ProductDB.Delete(id)
+	if err != nil {
+		if errors.Is(err, database.ErrProductNotFound) {
+			log.Printf("Product not found: %v", err)
+			http.Error(w, "Not found", http.StatusNotFound)
+			return
+		}
+		log.Printf("Error deleting product in database: %v", err)
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
+	w.WriteHeader(http.StatusOK)
+}
+
+func (h *ProductHandler) GetAllProducts(w http.ResponseWriter, r *http.Request) {
+	inputPage := r.URL.Query().Get("page")
+	inputLimit := r.URL.Query().Get("limit")
+	sort := r.URL.Query().Get("sort")
+
+	page, err := strconv.Atoi(inputPage)
+	if err != nil {
+		page = 0
+	}
+	limit, err := strconv.Atoi(inputLimit)
+	if err != nil {
+		limit = 0
+	}
+
+	products, err := h.ProductDB.FindAll(page, limit, sort)
+	if err != nil {
+		log.Printf("Error getting products from database: %v", err)
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	if err := json.NewEncoder(w).Encode(products); err != nil {
+		log.Printf("Error encoding products to JSON: %v", err)
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
 }

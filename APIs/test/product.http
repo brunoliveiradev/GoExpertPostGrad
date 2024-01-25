@@ -19,3 +19,14 @@ Content-Type: application/json
   "name": "Macbook Pro",
   "price": 7999.99
 }
+
+
+###
+# DELETE /products/{id}
+DELETE http://localhost:8000/products/7295524c-9a02-40ec-9332-7da34c9f253d
+
+
+###
+# GET /products
+GET http://localhost:8000/products
+```

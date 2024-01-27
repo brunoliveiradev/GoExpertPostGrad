@@ -20,7 +20,7 @@ func main() {
 		panic(err)
 	}
 
-	_, err = config.LoadConfig("./.env")
+	cfg, err := config.LoadConfig("./.env")
 	if err != nil {
 		panic(err)
 	}
@@ -34,7 +34,7 @@ func main() {
 	productHandler := handlers.NewProductHandler(productDB)
 
 	userDB := database.NewUser(db)
-	userHandler := handlers.NewUserHandler(userDB)
+	userHandler := handlers.NewUserHandler(userDB, cfg.TokenAuth, cfg.JWTExpireTime)
 
 	r := chi.NewRouter()
 	r.Use(middleware.Logger)
@@ -47,6 +47,7 @@ func main() {
 
 	// User routes
 	r.Post("/users", userHandler.CreateUser)
+	r.Post("/users/generate_token", userHandler.GetJWT)
 
 	http.ListenAndServe(":8000", r)
 }

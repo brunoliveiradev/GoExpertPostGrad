@@ -1,3 +1,4 @@
+# Create user
 POST http://localhost:8000/users
 Content-Type: application/json
 
@@ -7,4 +8,51 @@ Content-Type: application/json
   "password": "PWD1234"
 }
 
+> {%
+    client.test("Create user - response status is 201", function () {
+        client.assert(response.status === 201, "Response status is not 201");
+    });
+%}
 
+
+###
+# POST /users/generate-token
+POST http://localhost:8000/users/generate_token
+Content-Type: application/json
+
+{
+  "email": "s@email.com",
+  "password": "PWD1234"
+}
+
+> {%
+    client.test("Generate token - response status is 200", function () {
+        client.assert(response.status === 200, "Response status is not 200");
+    });
+
+    client.test("Generate token - response content-type is json", function () {
+        const type = response.contentType.mimeType;
+        client.assert(type === "application/json", `Expected 'application/json' but received '${type}'`);
+    });
+
+    client.test("Generate token - response body is not empty", function () {
+        client.assert(response.body.length > 0, "Response body is empty");
+    });
+%}
+
+
+###
+# POST /users/generate-token (invalid password)
+POST http://localhost:8000/users/generate_token
+Content-Type: application/json
+
+{
+  "email": "s@email.com",
+  "password": "PWD1234567"
+}
+
+> {%
+    client.test("Generate token with invalid password - response status is 401", function () {
+        client.assert(response.status === 401, "Response status is not 401");
+    });
+%}

@@ -7,9 +7,10 @@ Content-Type: application/json
 }
 
 ###
+@auth_token = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MDY0MDE5NjIsInN1YiI6IjNjYmVkYTRmLWE5NDMtNGJiZC05YTc5LTQyZGQ5MmM2YTIwMSJ9.FYIB4cGiIK1nQTOhxV8KVArXy_IWJufKN4_HEIHlMUo
 # GET /products
-GET http://localhost:8000/products/7295524c-9a02-40ec-9332-7da34c9f253d
-
+GET http://localhost:8000/products/e2d47426-38f8-4a7b-b36a-bef4f016aa88
+Authorization: Bearer {{auth_token}}
 ###
 # PUT /products/{id} + body
 PUT http://localhost:8000/products/af9ae15b-13ee-4303-a00d-f0c55f469902
@@ -29,4 +30,5 @@ DELETE http://localhost:8000/products/7295524c-9a02-40ec-9332-7da34c9f253d
 ###
 # GET /products
 GET http://localhost:8000/products
+Authorization: Bearer {{auth_token}}
 ```

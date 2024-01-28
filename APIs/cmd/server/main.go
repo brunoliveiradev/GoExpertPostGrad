@@ -7,6 +7,7 @@ import (
 	"github.com/brunoliveiradev/courseGoExpert/APIs/internal/infra/http/handlers"
 	"github.com/go-chi/chi"
 	"github.com/go-chi/chi/middleware"
+	"github.com/go-chi/jwtauth"
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 	"net/http"
@@ -38,12 +39,17 @@ func main() {
 
 	r := chi.NewRouter()
 	r.Use(middleware.Logger)
+
 	// Product routes
-	r.Post("/products", productHandler.CreateProduct)
-	r.Get("/products", productHandler.GetAllProducts)
-	r.Get("/products/{id}", productHandler.GetProduct)
-	r.Put("/products/{id}", productHandler.UpdateProduct)
-	r.Delete("/products/{id}", productHandler.DeleteProduct)
+	r.Route("/products", func(r chi.Router) {
+		r.Use(jwtauth.Verifier(cfg.TokenAuth)) // jwtauth.Verifier is a middleware to verify JWT tokens
+		r.Use(jwtauth.Authenticator)           // check if token is valid
+		r.Post("/", productHandler.CreateProduct)
+		r.Get("/", productHandler.GetAllProducts)
+		r.Get("/{id}", productHandler.GetProduct)
+		r.Put("/{id}", productHandler.UpdateProduct)
+		r.Delete("/{id}", productHandler.DeleteProduct)
+	})
 
 	// User routes
 	r.Post("/users", userHandler.CreateUser)

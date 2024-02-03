@@ -7,7 +7,7 @@ Content-Type: application/json
 }
 
 ###
-@auth_token = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MDY0MDE5NjIsInN1YiI6IjNjYmVkYTRmLWE5NDMtNGJiZC05YTc5LTQyZGQ5MmM2YTIwMSJ9.FYIB4cGiIK1nQTOhxV8KVArXy_IWJufKN4_HEIHlMUo
+@auth_token = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MDY5ODcxMDQsInN1YiI6IjNjYmVkYTRmLWE5NDMtNGJiZC05YTc5LTQyZGQ5MmM2YTIwMSJ9.1hnv3w8HPKiO_cmddn6uM4d8fXqKd84ZZe2i4nuwkjs
 # GET /products
 GET http://localhost:8000/products/e2d47426-38f8-4a7b-b36a-bef4f016aa88
 Authorization: Bearer {{auth_token}}

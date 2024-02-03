@@ -13,16 +13,12 @@ import (
 )
 
 type UserHandler struct {
-	UserDB        database.UserInterface
-	Jwt           *jwtauth.JWTAuth
-	JwtExperiesIn int
+	UserDB database.UserInterface
 }
 
-func NewUserHandler(db database.UserInterface, jwt *jwtauth.JWTAuth, JwtExperiesIn int) *UserHandler {
+func NewUserHandler(db database.UserInterface) *UserHandler {
 	return &UserHandler{
-		UserDB:        db,
-		Jwt:           jwt,
-		JwtExperiesIn: JwtExperiesIn,
+		UserDB: db,
 	}
 }
 
@@ -53,6 +49,9 @@ func (h *UserHandler) CreateUser(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *UserHandler) GetJWT(w http.ResponseWriter, r *http.Request) {
+	jwt := r.Context().Value("jwt").(*jwtauth.JWTAuth)
+	jwtExpireTime := r.Context().Value("jwtExpireTime").(int)
+
 	var input dto.GetJWTInput
 
 	err := json.NewDecoder(r.Body).Decode(&input)
@@ -80,9 +79,9 @@ func (h *UserHandler) GetJWT(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	_, tokenString, err := h.Jwt.Encode(map[string]interface{}{
+	_, tokenString, err := jwt.Encode(map[string]interface{}{
 		"sub": user.ID.String(),
-		"exp": time.Now().Add(time.Second * time.Duration(h.JwtExperiesIn)).Unix(),
+		"exp": time.Now().Add(time.Second * time.Duration(jwtExpireTime)).Unix(),
 	})
 
 	accessToken := struct {

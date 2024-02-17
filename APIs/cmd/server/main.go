@@ -2,12 +2,14 @@ package main
 
 import (
 	"github.com/brunoliveiradev/courseGoExpert/APIs/config"
+	_ "github.com/brunoliveiradev/courseGoExpert/APIs/docs"
 	"github.com/brunoliveiradev/courseGoExpert/APIs/internal/domain"
 	"github.com/brunoliveiradev/courseGoExpert/APIs/internal/infra/database"
 	"github.com/brunoliveiradev/courseGoExpert/APIs/internal/infra/http/handlers"
 	"github.com/go-chi/chi"
 	"github.com/go-chi/chi/middleware"
 	"github.com/go-chi/jwtauth"
+	httpSwagger "github.com/swaggo/http-swagger"
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 	"log"
@@ -15,6 +17,20 @@ import (
 	"os"
 )
 
+// @title CourseGoExpert API
+// @description This is a sample API server to show how to document, build and deploy an API using Go with Swagger (Swaggo).
+// @version 1.0
+// @termsOfService http://swagger.io/terms/
+// @contact.name Bruno Oliveira
+// @contact.url http://github.com/brunoliveiradev
+// @license.name MIT
+// @license.url http://opensource.org/licenses/MIT
+// @host localhost:8000
+// @BasePath /
+// @schemes http
+// @securityDefinitions.apikey ApiKeyAuth
+// @in header
+// @name Authorization
 func main() {
 	// Change the current working directory to the server directory
 	err := os.Chdir("/Users/brunooliveira/GolandProjects/courseGoExpert/APIs/cmd/server")
@@ -60,6 +76,7 @@ func main() {
 	r.Post("/users", userHandler.CreateUser)
 	r.Post("/users/generate_token", userHandler.GetJWT)
 
+	r.Get("/docs/*", httpSwagger.Handler(httpSwagger.URL("http://localhost:8000/docs/doc.json")))
 	http.ListenAndServe(":8000", r)
 }
 

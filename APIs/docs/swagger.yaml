@@ -1,0 +1,23 @@
+basePath: /
+host: localhost:8000
+info:
+  contact:
+    name: Bruno Oliveira
+    url: http://github.com/brunoliveiradev
+  description: This is a sample API server to show how to document, build and deploy
+    an API using Go with Swagger (Swaggo).
+  license:
+    name: MIT
+    url: http://opensource.org/licenses/MIT
+  termsOfService: http://swagger.io/terms/
+  title: CourseGoExpert API
+  version: "1.0"
+paths: { }
+schemes:
+  - http
+securityDefinitions:
+  ApiKeyAuth:
+    in: header
+    name: Authorization
+    type: apiKey
+swagger: "2.0"

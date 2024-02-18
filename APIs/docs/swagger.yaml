@@ -1,4 +1,31 @@
 basePath: /
+definitions:
+  dto.CreateUserInput:
+    properties:
+      email:
+        type: string
+      name:
+        type: string
+      password:
+        type: string
+    type: object
+  dto.GetJWTInput:
+    properties:
+      email:
+        type: string
+      password:
+        type: string
+    type: object
+  dto.GetJWTOutput:
+    properties:
+      access_token:
+        type: string
+    type: object
+  entity.ErrorResponse:
+    properties:
+      message:
+        type: string
+    type: object
 host: localhost:8000
 info:
   contact:
@@ -12,7 +39,73 @@ info:
   termsOfService: http://swagger.io/terms/
   title: CourseGoExpert API
   version: "1.0"
-paths: { }
+paths:
+  /users:
+    post:
+      consumes:
+        - application/json
+      description: Create a new user
+      parameters:
+        - description: user request
+          in: body
+          name: request
+          required: true
+          schema:
+            $ref: '#/definitions/dto.CreateUserInput'
+      produces:
+        - application/json
+      responses:
+        "201":
+          description: Created
+        "400":
+          description: Bad request
+          schema:
+            $ref: '#/definitions/entity.ErrorResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/entity.ErrorResponse'
+      summary: Create a new user
+      tags:
+        - users
+  /users/generate_token:
+    post:
+      consumes:
+        - application/json
+      description: Generate a JWT token for a given user credentials
+      parameters:
+        - description: user credentials
+          in: body
+          name: request
+          required: true
+          schema:
+            $ref: '#/definitions/dto.GetJWTInput'
+      produces:
+        - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.GetJWTOutput'
+        "400":
+          description: Bad request
+          schema:
+            $ref: '#/definitions/entity.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/entity.ErrorResponse'
+        "404":
+          description: User not found
+          schema:
+            $ref: '#/definitions/entity.ErrorResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/entity.ErrorResponse'
+      summary: Generate a JWT token for user
+      tags:
+        - users
 schemes:
   - http
 securityDefinitions:

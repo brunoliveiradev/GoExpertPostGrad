@@ -22,6 +22,17 @@ func NewUserHandler(db database.UserInterface) *UserHandler {
 	}
 }
 
+// CreateUser godoc
+// @Summary 	Create a new user
+// @Description Create a new user
+// @Tags 		users
+// @Accept 		json
+// @Produce 	json
+// @Param 		request 	body 		dto.CreateUserInput 	true 	"user request"
+// @Success 	201
+// @Failure 	400			{object} 	entity.ErrorResponse 	"Bad request"
+// @Failure 	500			{object} 	entity.ErrorResponse 	"Internal server error"
+// @Router 		/users [post]
 func (h *UserHandler) CreateUser(w http.ResponseWriter, r *http.Request) {
 	var input dto.CreateUserInput
 
@@ -48,6 +59,19 @@ func (h *UserHandler) CreateUser(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusCreated)
 }
 
+// GetJWT godoc
+// @Summary 	Generate a JWT token for user
+// @Description Generate a JWT token for a given user credentials
+// @Tags 		users
+// @Accept 		json
+// @Produce 	json
+// @Param 		request 	body 		dto.GetJWTInput 		true 	"user credentials"
+// @Success 	200 		{object} 	dto.GetJWTOutput
+// @Failure 	400			{object} 	entity.ErrorResponse 	"Bad request"
+// @Failure 	401			{object} 	entity.ErrorResponse 	"Unauthorized"
+// @Failure 	404			{object} 	entity.ErrorResponse 	"User not found"
+// @Failure 	500			{object} 	entity.ErrorResponse 	"Internal server error"
+// @Router 		/users/generate_token [post]
 func (h *UserHandler) GetJWT(w http.ResponseWriter, r *http.Request) {
 	jwt := r.Context().Value("jwt").(*jwtauth.JWTAuth)
 	jwtExpireTime := r.Context().Value("jwtExpireTime").(int)
@@ -65,7 +89,7 @@ func (h *UserHandler) GetJWT(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		if errors.Is(err, database.ErrUserNotFound) {
 			log.Printf("User not found: %v", err)
-			http.Error(w, "Unauthorized", http.StatusUnauthorized)
+			http.Error(w, "User not found", http.StatusNotFound)
 			return
 		}
 		log.Printf("Error getting user from database: %v", err)
@@ -83,12 +107,7 @@ func (h *UserHandler) GetJWT(w http.ResponseWriter, r *http.Request) {
 		"sub": user.ID.String(),
 		"exp": time.Now().Add(time.Second * time.Duration(jwtExpireTime)).Unix(),
 	})
-
-	accessToken := struct {
-		AccessToken string `json:"tiger_token"`
-	}{
-		AccessToken: tokenString,
-	}
+	accessToken := dto.GetJWTOutput{AccessToken: tokenString}
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)

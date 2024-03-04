@@ -15,6 +15,11 @@ func main() {
 
 	// Thread 3
 	usingForever(10)
+
+	// Thread 4
+	ch := make(chan int)
+	go publishIntoChannel(ch) // this will run in background
+	consumeFromChannel(ch)
 }
 
 // The function first reverses the input string 'name' and then sends the reversed string to the provided channel.
@@ -45,4 +50,18 @@ func usingForever(times int) {
 	}()
 
 	<-forever // this will unload the value from the channel and unblock the main goroutine
+}
+
+func publishIntoChannel(channel chan int) {
+	for i := range 10 {
+		channel <- i
+	}
+	fmt.Println("Closing the channel")
+	close(channel)
+}
+
+func consumeFromChannel(channel chan int) {
+	for x := range channel {
+		fmt.Println("Received: ", x)
+	}
 }

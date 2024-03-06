@@ -17,6 +17,9 @@ func main() {
 
 	// Demonstrating channel and WaitGroup to synchronize multiple goroutines.
 	waitGroupDemo(10)
+
+	// Demonstrating channel direction.
+	channelDirectionDemo()
 }
 
 func basicChannelDemo() {
@@ -88,4 +91,51 @@ func waitGroupDemo(size int) {
 	}()
 
 	wg.Wait() // Wait for all goroutines to finish.
+}
+
+// channelDirectionDemo demonstrates the use of send-ONLY and receive-ONLY channel directions.
+// By default, channels in Go are bidirectional, allowing both sending and receiving of values.
+// A send-only channel (chan<- Type) can only be used to send data.
+// A receive-only channel (<-chan Type) can only be used to receive data.
+func channelDirectionDemo() {
+	ch := make(chan int) // Create a "normal" bidirectional channel.
+
+	wg := sync.WaitGroup{}
+	wg.Add(2) // Wait for two goroutines.
+
+	// Start a goroutine to send data into the send-only channel.
+	go func() {
+		defer wg.Done()
+		sendData(ch)
+	}()
+
+	// Start a goroutine to receive data from the receive-only channel.
+	go func() {
+		defer wg.Done()
+		receiveData(ch)
+	}()
+
+	wg.Wait() // Wait for both goroutines to finish.
+	fmt.Println("Channel direction demonstration completed.")
+}
+
+// sendData simulates sending data to a send-only channel (chan<- Type).
+// It accepts a send-only channel, denoted by (chan<- int), which means the channel can only be used to send integers.
+func sendData(ch chan<- int) {
+	// Simulate sending data.
+	for i := 0; i < 5; i++ {
+		ch <- i // Send data into the channel.
+	}
+	close(ch)
+	fmt.Println("All data sent to the channel.")
+}
+
+// receiveData simulates receiving data from a receive-only channel (<-chan Type).
+// It accepts a receive-only channel, denoted by (<-chan int), indicating the channel can only be used to receive integers.
+func receiveData(ch <-chan int) {
+	// Receive data until the channel is closed.
+	for value := range ch {
+		fmt.Printf("Received value: %d\n", value)
+	}
+	fmt.Println("All data received from the channel.")
 }

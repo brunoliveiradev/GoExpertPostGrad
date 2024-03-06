@@ -1,67 +1,91 @@
 package main
 
-import "fmt"
+import (
+	"fmt"
+	"sync"
+)
 
 func main() {
-	// create a channel to communicate between the main goroutine and the other goroutines
-	channel := make(chan string)
+	// Demonstrating basic channel operation: sending and receiving.
+	basicChannelDemo()
 
-	// Thread 2
-	go reverseNameAndSendToChannel("banana", channel)
+	// Demonstrating a channel to signal and block the main goroutine.
+	signalAndBlockDemo()
 
-	// Thread 1 will wait for the value to be sent
-	msg := <-channel
-	fmt.Printf("The reversed name is: %s\n", msg)
+	// Demonstrating channel operations with publisher and subscriber pattern.
+	publishSubscribeDemo()
 
-	// Thread 3
-	usingForever(10)
-
-	// Thread 4
-	ch := make(chan int)
-	go publishIntoChannel(ch) // this will run in background
-	consumeFromChannel(ch)
+	// Demonstrating channel and WaitGroup to synchronize multiple goroutines.
+	waitGroupDemo(10)
 }
 
-// The function first reverses the input string 'name' and then sends the reversed string to the provided channel.
+func basicChannelDemo() {
+	channel := make(chan string)
+	go reverseNameAndSendToChannel("banana", channel)
+	msg := <-channel
+	fmt.Printf("The reversed name is: %s\n", msg)
+}
+
 func reverseNameAndSendToChannel(name string, channel chan string) {
-	// print the reversed name
 	var reversedName string
 	for i := len(name) - 1; i >= 0; i-- {
 		reversedName += string(name[i])
 	}
-	fmt.Println(reversedName)
-
-	// send a value to the channel which can be used to communicate between different goroutines
-	channel <- reversedName
+	channel <- reversedName // Send reversed name to the channel.
 }
 
-func usingForever(times int) {
+func signalAndBlockDemo() {
 	forever := make(chan bool)
-
-	//<-forever // this will block the main goroutine forever and cause deadlock
-	// to fix that we can use another goroutine to receive the value from the channel
+	//<-forever  // using forever just after will block the main goroutine forever and cause deadlock kept here for example
 
 	go func() {
-		for i := range times {
-			fmt.Print(i, " ")
-		}
-		fmt.Println()
-		forever <- true // send a value to the channel and unblock the main goroutine
+		fmt.Println("Signal and block demo running.")
+		forever <- true // Send a signal to unblock the main goroutine.
 	}()
 
-	<-forever // this will unload the value from the channel and unblock the main goroutine
+	<-forever // Wait for signal.
 }
 
-func publishIntoChannel(channel chan int) {
-	for i := range 10 {
+func publishSubscribeDemo() {
+	ch := make(chan int)
+	go publishIntoChannel(ch, 10)
+	consumeFromChannel(ch) // By not using goroutine to consume, we want to wait for the consumption to complete before moving on in the main goroutine
+}
+
+func publishIntoChannel(channel chan int, size int) {
+	for i := range size {
 		channel <- i
 	}
 	fmt.Println("Closing the channel")
-	close(channel)
+	close(channel) // It's important to close the channel to signal that no more values will be sent.
 }
 
 func consumeFromChannel(channel chan int) {
 	for x := range channel {
-		fmt.Println("Received: ", x)
+		fmt.Printf("Received: %d\n", x)
 	}
+}
+
+func waitGroupDemo(size int) {
+	channel := make(chan int)
+	wg := sync.WaitGroup{}
+	wg.Add(size)
+
+	go func() {
+		for i := range size {
+			channel <- i
+		}
+		fmt.Println("WaitGroup Channel closed.")
+		close(channel) // Ensure to close the channel after publishing to prevent deadlock.
+	}()
+
+	// By using a goroutine to consume the channel, you ensure that the consuming process is non-blocking and to perform operations concurrently
+	go func() {
+		for x := range channel {
+			fmt.Printf("WaitGroup demo received: %d\n", x)
+			wg.Done()
+		}
+	}()
+
+	wg.Wait() // Wait for all goroutines to finish.
 }

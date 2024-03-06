@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"sync"
+	"time"
 )
 
 func main() {
@@ -20,6 +21,10 @@ func main() {
 
 	// Demonstrating channel direction.
 	channelDirectionDemo()
+
+	// Demonstrating channel select statement.
+	channelSelectDemo()
+
 }
 
 func basicChannelDemo() {
@@ -138,4 +143,28 @@ func receiveData(ch <-chan int) {
 		fmt.Printf("Received value: %d\n", value)
 	}
 	fmt.Println("All data received from the channel.")
+}
+
+// channelSelectDemo demonstrates the use of the select statement to receive from the first channel that is ready.
+func channelSelectDemo() {
+	ch1 := make(chan string)
+	ch2 := make(chan string)
+
+	go func() {
+		time.Sleep(300 * time.Millisecond)
+		ch1 <- "Hello"
+	}()
+
+	go func() {
+		time.Sleep(500 * time.Millisecond)
+		ch2 <- "World"
+	}()
+
+	// Use the select statement to receive from the first channel that is ready.
+	select {
+	case msg1 := <-ch1:
+		fmt.Println("Received:", msg1)
+	case msg2 := <-ch2:
+		fmt.Println("Received:", msg2)
+	}
 }

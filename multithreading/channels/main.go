@@ -156,15 +156,24 @@ func channelSelectDemo() {
 	}()
 
 	go func() {
-		time.Sleep(500 * time.Millisecond)
+		time.Sleep(300 * time.Millisecond)
 		ch2 <- "World"
+	}()
+
+	go func() {
+		time.Sleep(500 * time.Millisecond)
+		ch2 <- "!"
 	}()
 
 	// Use the select statement to receive from the first channel that is ready.
 	select {
 	case msg1 := <-ch1:
-		fmt.Println("Received:", msg1)
+		fmt.Println("Received from channel select demo:", msg1)
+
 	case msg2 := <-ch2:
-		fmt.Println("Received:", msg2)
+		fmt.Println("Received from channel select demo:", msg2)
+
+	case <-time.After(400 * time.Millisecond):
+		fmt.Println("Timeout: No message received.")
 	}
 }

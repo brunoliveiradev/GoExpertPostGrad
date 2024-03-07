@@ -25,6 +25,9 @@ func main() {
 	// Demonstrating channel select statement.
 	channelSelectDemo()
 
+	// Demonstrating channel with buffered channel
+	bufferedChannelDemo()
+
 }
 
 func basicChannelDemo() {
@@ -175,5 +178,26 @@ func channelSelectDemo() {
 
 	case <-time.After(400 * time.Millisecond):
 		fmt.Println("Timeout: No message received.")
+	}
+}
+
+// bufferedChannelDemo demonstrates the use of buffered channels to send and receive data.
+func bufferedChannelDemo() {
+	// Create a buffered channel with a capacity of 3.
+	ch := make(chan int, 3)
+
+	// Start a goroutine to send data into the buffered channel.
+	go func() {
+		for i := 1; i <= 5; i++ {
+			ch <- i
+			fmt.Println("Sent to buffered channel:", i)
+		}
+		close(ch) // Close the channel to indicate that no more data will be sent.
+	}()
+
+	// Use a for loop to receive data from the buffered channel.
+	// This loop terminates when the channel is closed and all data has been received.
+	for i := range ch {
+		fmt.Println("Received from buffered channel:", i)
 	}
 }

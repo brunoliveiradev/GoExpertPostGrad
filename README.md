@@ -45,7 +45,7 @@ The project uses Go Modules for dependency management. To install, you need to:
 
 1. Clone the repository:
     ```
-    git clone https://github.com/yourusername/GoExpertPostGrad.git
+    git clone https://github.com/brunoliveiradev/GoExpertPostGrad.git
     ```
 2. Navigate to the GoExpertPostGrad folder:
     ```
@@ -53,7 +53,7 @@ The project uses Go Modules for dependency management. To install, you need to:
     ```
 3. Download the required dependencies:
     ```
-    go mod download
+    go mod tidy
     ```
 4. Build the project:
     ```

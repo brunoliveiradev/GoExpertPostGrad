@@ -95,3 +95,9 @@ If you have any questions, feel free to contact or open an issue. Contributors a
 - [Lato Sensu Post-Graduation course in Advanced Development in Golang - Go Expert](https://emec.mec.gov.br/emec/consulta-cadastro/detalhamento/d96957f455f6405d14c6542552b0f6eb/MjIzMjY=/93916316abe23148507bd4c260e4b878/MjMwNTA1)
 - [Full Cycle](https://www.fullcycle.com.br/)
 - [Faculdade Brasília - FBr](http://www.fbr.edu.br/)
+
+<br>
+
+```
+Code with ❤️ by [Bruno Oliveira](https://linkedin.com/in/brunoliveiradev)
+```

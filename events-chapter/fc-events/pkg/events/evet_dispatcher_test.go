@@ -9,12 +9,12 @@ import (
 
 type EventDispatcherTestSuite struct {
 	suite.Suite
-	event           TestEvent
-	otherEvent      TestEvent
-	handler         TestEventHandler
-	otherHandler    TestEventHandler
-	anotherHandler  TestEventHandler
-	eventDispatcher *EventDispatcher
+	firstEvent         TestEvent
+	secondEvent        TestEvent
+	testEventHandler   TestEventHandler
+	secondEventHandler TestEventHandler
+	thirdEventHandler  TestEventHandler
+	eventDispatcher    *EventDispatcher
 }
 
 type TestEvent struct {
@@ -48,38 +48,57 @@ func TestSuite(t *testing.T) {
 func (suite *EventDispatcherTestSuite) SetupTest() {
 	suite.eventDispatcher = NewEventDispatcher()
 
-	suite.handler = TestEventHandler{1}
-	suite.otherHandler = TestEventHandler{2}
-	suite.anotherHandler = TestEventHandler{3}
+	suite.testEventHandler = TestEventHandler{1}
+	suite.secondEventHandler = TestEventHandler{2}
+	suite.thirdEventHandler = TestEventHandler{3}
 
-	suite.event = TestEvent{Name: "testEvent", Payload: "testEventPayload"}
-	suite.otherEvent = TestEvent{Name: "otherTestEvent", Payload: "otherTestEventPayload"}
+	suite.firstEvent = TestEvent{Name: "firstEvent", Payload: "testEventPayload"}
+	suite.secondEvent = TestEvent{Name: "otherTestEvent", Payload: "otherTestEventPayload"}
 }
 
 func (suite *EventDispatcherTestSuite) TestEventDispatcher_Register_Success() {
-	err := suite.eventDispatcher.Register(suite.event.GetName(), &suite.handler)
+	err := suite.eventDispatcher.Register(suite.firstEvent.GetName(), &suite.testEventHandler)
 
 	//assert.Nil(suite.T(), err)
 	suite.Nil(err)
-	//assert.Equal(suite.T(), 1, len(suite.eventDispatcher.handlers[suite.event.GetName()]))
-	suite.Equal(1, len(suite.eventDispatcher.handlers[suite.event.GetName()]))
+	//assert.Equal(suite.T(), 1, len(suite.eventDispatcher.handlers[suite.firstEvent.GetName()]))
+	suite.Equal(1, len(suite.eventDispatcher.handlers[suite.firstEvent.GetName()]))
 
-	err = suite.eventDispatcher.Register(suite.event.GetName(), &suite.otherHandler)
+	err = suite.eventDispatcher.Register(suite.firstEvent.GetName(), &suite.secondEventHandler)
 	suite.Nil(err)
-	suite.Equal(2, len(suite.eventDispatcher.handlers[suite.event.GetName()]))
+	suite.Equal(2, len(suite.eventDispatcher.handlers[suite.firstEvent.GetName()]))
 
-	// assert if the handler is already registered correctly
-	assert.Equal(suite.T(), &suite.handler, suite.eventDispatcher.handlers[suite.event.GetName()][0])
-	assert.Equal(suite.T(), &suite.otherHandler, suite.eventDispatcher.handlers[suite.event.GetName()][1])
+	// assert if the testEventHandler is already registered correctly
+	assert.Equal(suite.T(), &suite.testEventHandler, suite.eventDispatcher.handlers[suite.firstEvent.GetName()][0])
+	assert.Equal(suite.T(), &suite.secondEventHandler, suite.eventDispatcher.handlers[suite.firstEvent.GetName()][1])
 }
 
 func (suite *EventDispatcherTestSuite) TestEventDispatcher_Register_ErrorAlreadyRegistered() {
-	err := suite.eventDispatcher.Register(suite.event.GetName(), &suite.handler)
+	err := suite.eventDispatcher.Register(suite.firstEvent.GetName(), &suite.testEventHandler)
 	suite.Nil(err)
-	suite.Equal(1, len(suite.eventDispatcher.handlers[suite.event.GetName()]))
+	suite.Equal(1, len(suite.eventDispatcher.handlers[suite.firstEvent.GetName()]))
 
-	err = suite.eventDispatcher.Register(suite.event.GetName(), &suite.handler)
+	err = suite.eventDispatcher.Register(suite.firstEvent.GetName(), &suite.testEventHandler)
 	assert.Equal(suite.T(), ErrHandlerAlreadyRegistered, err)
-	assert.Equal(suite.T(), &suite.handler, suite.eventDispatcher.handlers[suite.event.GetName()][0])
-	assert.Equal(suite.T(), 1, len(suite.eventDispatcher.handlers[suite.event.GetName()]))
+	assert.Equal(suite.T(), &suite.testEventHandler, suite.eventDispatcher.handlers[suite.firstEvent.GetName()][0])
+	assert.Equal(suite.T(), 1, len(suite.eventDispatcher.handlers[suite.firstEvent.GetName()]))
+}
+
+func (suite *EventDispatcherTestSuite) TestEventDispatcher_Clear_Success() {
+	// firstEvent 1 = firstEvent
+	err := suite.eventDispatcher.Register(suite.firstEvent.GetName(), &suite.testEventHandler)
+	suite.Nil(err)
+	suite.Equal(1, len(suite.eventDispatcher.handlers[suite.firstEvent.GetName()]))
+
+	err = suite.eventDispatcher.Register(suite.firstEvent.GetName(), &suite.secondEventHandler)
+	suite.Nil(err)
+	suite.Equal(2, len(suite.eventDispatcher.handlers[suite.firstEvent.GetName()]))
+
+	// firstEvent 2 = secondEvent
+	err = suite.eventDispatcher.Register(suite.secondEvent.GetName(), &suite.thirdEventHandler)
+	suite.Nil(err)
+
+	err = suite.eventDispatcher.Clear()
+	assert.Equal(suite.T(), nil, err)
+	assert.Equal(suite.T(), 0, len(suite.eventDispatcher.handlers))
 }

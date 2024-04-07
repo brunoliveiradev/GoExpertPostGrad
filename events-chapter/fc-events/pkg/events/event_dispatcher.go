@@ -15,6 +15,18 @@ func NewEventDispatcher() *EventDispatcher {
 	}
 }
 
+// Dispatch sends the event to all registered handlers
+func (ed *EventDispatcher) Dispatch(event EventInterface) error {
+	registeredHandlers, handlerExists := ed.handlers[event.GetName()]
+	if handlerExists {
+		for _, handler := range registeredHandlers {
+			handler.Handle(event)
+		}
+	}
+	return nil
+}
+
+// Register adds a handler to the event name
 func (ed *EventDispatcher) Register(eventName string, handler EventHandlerInterface) error {
 	if ed.Has(eventName, handler) {
 		return ErrHandlerAlreadyRegistered

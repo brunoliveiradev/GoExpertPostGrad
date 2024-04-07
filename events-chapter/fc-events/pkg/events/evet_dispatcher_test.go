@@ -102,3 +102,19 @@ func (suite *EventDispatcherTestSuite) TestEventDispatcher_Clear_Success() {
 	assert.Equal(suite.T(), nil, err)
 	assert.Equal(suite.T(), 0, len(suite.eventDispatcher.handlers))
 }
+
+func (suite *EventDispatcherTestSuite) TestEventDispatcher_Has_Success() {
+	// firstEvent 1 = firstEvent
+	err := suite.eventDispatcher.Register(suite.firstEvent.GetName(), &suite.testEventHandler)
+	suite.Nil(err)
+	suite.Equal(1, len(suite.eventDispatcher.handlers[suite.firstEvent.GetName()]))
+
+	err = suite.eventDispatcher.Register(suite.firstEvent.GetName(), &suite.secondEventHandler)
+	suite.Nil(err)
+	suite.Equal(2, len(suite.eventDispatcher.handlers[suite.firstEvent.GetName()]))
+
+	// verify if the testEventHandler and secondEventHandler is registered using Has
+	assert.True(suite.T(), suite.eventDispatcher.Has(suite.firstEvent.GetName(), &suite.testEventHandler))
+	assert.True(suite.T(), suite.eventDispatcher.Has(suite.firstEvent.GetName(), &suite.secondEventHandler))
+	assert.False(suite.T(), suite.eventDispatcher.Has(suite.firstEvent.GetName(), &suite.thirdEventHandler))
+}

@@ -4,6 +4,7 @@ import "errors"
 
 var ErrHandlerAlreadyRegistered = errors.New("testEventHandler already registered")
 var ErrHandlerClearError = errors.New("handlers not cleared")
+var ErrHandlerNotRegistered = errors.New("handler not registered")
 
 type EventDispatcher struct {
 	handlers map[string][]EventHandlerInterface
@@ -49,6 +50,21 @@ func (ed *EventDispatcher) Has(eventName string, handler EventHandlerInterface) 
 	return false
 }
 
+// Remove deletes a handler from the given eventName
+func (ed *EventDispatcher) Remove(eventName string, handler EventHandlerInterface) error {
+	registeredHandlers, handlerExists := ed.handlers[eventName]
+	if handlerExists {
+		for i, registeredHandler := range registeredHandlers {
+			if registeredHandler == handler {
+				ed.handlers[eventName] = append(registeredHandlers[:i], registeredHandlers[i+1:]...)
+				return nil
+			}
+		}
+	}
+	return ErrHandlerNotRegistered
+}
+
+// Clear removes all handlers
 func (ed *EventDispatcher) Clear() error {
 	ed.handlers = make(map[string][]EventHandlerInterface)
 	if len(ed.handlers) != 0 {

@@ -140,3 +140,18 @@ func (suite *EventDispatcherTestSuite) TestEventDispatcher_Dispatch_Success() {
 	eh.AssertExpectations(suite.T())
 	eh.AssertNumberOfCalls(suite.T(), "Handle", 1)
 }
+
+func (suite *EventDispatcherTestSuite) TestEventDispatcher_Remove_Success() {
+	err := suite.eventDispatcher.Register(suite.firstEvent.GetName(), &suite.testEventHandler)
+	suite.Nil(err)
+	suite.Equal(1, len(suite.eventDispatcher.handlers[suite.firstEvent.GetName()]))
+
+	err = suite.eventDispatcher.Register(suite.firstEvent.GetName(), &suite.secondEventHandler)
+	suite.Nil(err)
+	suite.Equal(2, len(suite.eventDispatcher.handlers[suite.firstEvent.GetName()]))
+
+	err = suite.eventDispatcher.Remove(suite.firstEvent.GetName(), &suite.testEventHandler)
+	assert.Nil(suite.T(), err)
+	assert.Equal(suite.T(), 1, len(suite.eventDispatcher.handlers[suite.firstEvent.GetName()]))
+	assert.Equal(suite.T(), &suite.secondEventHandler, suite.eventDispatcher.handlers[suite.firstEvent.GetName()][0])
+}

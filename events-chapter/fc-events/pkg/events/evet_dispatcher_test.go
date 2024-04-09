@@ -4,6 +4,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/suite"
+	"sync"
 	"testing"
 	"time"
 )
@@ -39,7 +40,7 @@ type TestEventHandler struct {
 	ID int
 }
 
-func (teh *TestEventHandler) Handle(event EventInterface) {
+func (teh *TestEventHandler) Handle(event EventInterface, wg *sync.WaitGroup) {
 }
 
 func TestSuite(t *testing.T) {
@@ -61,8 +62,9 @@ type MockEventHandler struct {
 	mock.Mock
 }
 
-func (meh *MockEventHandler) Handle(event EventInterface) {
+func (meh *MockEventHandler) Handle(event EventInterface, wg *sync.WaitGroup) {
 	meh.Called(event)
+	wg.Done()
 }
 
 func (suite *EventDispatcherTestSuite) TestEventDispatcher_Register_Success() {
@@ -130,15 +132,23 @@ func (suite *EventDispatcherTestSuite) TestEventDispatcher_Has_Success() {
 
 func (suite *EventDispatcherTestSuite) TestEventDispatcher_Dispatch_Success() {
 	eh := &MockEventHandler{}
-	eh.On("Handle", &suite.firstEvent).Return(nil)
+	eh.On("Handle", &suite.firstEvent)
+
+	eh2 := &MockEventHandler{}
+	eh2.On("Handle", &suite.firstEvent)
 
 	err := suite.eventDispatcher.Register(suite.firstEvent.GetName(), eh)
+	suite.Nil(err)
+	err = suite.eventDispatcher.Register(suite.firstEvent.GetName(), eh2)
 	suite.Nil(err)
 
 	err = suite.eventDispatcher.Dispatch(&suite.firstEvent)
 	suite.Nil(err)
+
 	eh.AssertExpectations(suite.T())
+	eh2.AssertExpectations(suite.T())
 	eh.AssertNumberOfCalls(suite.T(), "Handle", 1)
+	eh2.AssertNumberOfCalls(suite.T(), "Handle", 1)
 }
 
 func (suite *EventDispatcherTestSuite) TestEventDispatcher_Remove_Success() {

@@ -1,6 +1,9 @@
 package events
 
-import "errors"
+import (
+	"errors"
+	"sync"
+)
 
 var ErrHandlerAlreadyRegistered = errors.New("testEventHandler already registered")
 var ErrHandlerClearError = errors.New("handlers not cleared")
@@ -20,9 +23,13 @@ func NewEventDispatcher() *EventDispatcher {
 func (ed *EventDispatcher) Dispatch(event EventInterface) error {
 	registeredHandlers, handlerExists := ed.handlers[event.GetName()]
 	if handlerExists {
+		// WaitGroup to wait for all handlers to finish
+		wg := &sync.WaitGroup{}
 		for _, handler := range registeredHandlers {
-			handler.Handle(event)
+			wg.Add(1)
+			go handler.Handle(event, wg)
 		}
+		wg.Wait()
 	}
 	return nil
 }

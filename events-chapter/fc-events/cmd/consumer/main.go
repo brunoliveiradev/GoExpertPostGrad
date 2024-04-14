@@ -7,7 +7,7 @@ import (
 )
 
 func main() {
-	ch, err := rabbitmq.OpenChannel()
+	ch, err := setupChannel()
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -19,6 +19,10 @@ func main() {
 	for msg := range msgs {
 		processMessage(msg)
 	}
+}
+
+func setupChannel() (*amqp.Channel, error) {
+	return rabbitmq.OpenChannel()
 }
 
 func processMessage(msg amqp.Delivery) {

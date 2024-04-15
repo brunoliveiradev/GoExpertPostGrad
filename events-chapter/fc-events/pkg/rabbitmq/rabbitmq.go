@@ -2,41 +2,51 @@ package rabbitmq
 
 import (
 	"context"
+	"fmt"
 	amqp "github.com/rabbitmq/amqp091-go"
 	"log"
+	"os"
+	"os/signal"
+	"syscall"
 )
 
-func SetupChannel() (*amqp.Channel, error) {
-	conn, err := amqp.Dial("amqp://guest:guest@localhost:5672/")
+type RabbitMQConfig struct {
+	URL      string
+	Queue    string
+	Exchange string
+}
+
+func SetupChannel(config RabbitMQConfig) (*amqp.Channel, *amqp.Connection, error) {
+	conn, err := amqp.Dial(config.URL)
 	if err != nil {
-		log.Println("Failed to connect to RabbitMQ:", err)
-		return nil, err
+		log.Printf("Failed to connect to RabbitMQ: %v", err)
+		return nil, nil, err
 	}
 	ch, err := conn.Channel()
 	if err != nil {
 		conn.Close()
-		log.Println("Failed to open a channel:", err)
-		return nil, err
+		log.Printf("Failed to open a channel: %v", err)
+		return nil, nil, err
 	}
-	return ch, nil
+	return ch, conn, nil
 }
 
-func StartConsumer(ch *amqp.Channel, queueName string, msgs chan<- amqp.Delivery) {
-	if err := ensureQueueExists(ch, queueName); err != nil {
-		log.Fatalf("Failed to ensure queue exists: %s", err)
-		return
+func StartConsumer(ch *amqp.Channel, config RabbitMQConfig, msgs chan<- amqp.Delivery) error {
+	if err := ensureQueueExists(ch, config.Queue); err != nil {
+		return fmt.Errorf("failed to ensure queue exists: %w", err)
 	}
 
-	if err := consumeMessages(ch, queueName, msgs); err != nil {
-		log.Fatalf("Failed to start consumer: %s", err)
+	if err := consumeMessages(ch, config.Queue, msgs); err != nil {
+		return fmt.Errorf("failed to start consumer: %w", err)
 	}
+	return nil
 }
 
 func ProcessMessages(msgs chan amqp.Delivery) {
 	for msg := range msgs {
 		log.Printf("Received a message: %s", msg.Body)
 		if err := msg.Ack(false); err != nil {
-			log.Printf("Failed to acknowledge message: %s", err)
+			log.Printf("Failed to acknowledge message: %v", err)
 		}
 		if string(msg.Body) == "exit" {
 			log.Println("Exit message received, shutting down...")
@@ -45,11 +55,11 @@ func ProcessMessages(msgs chan amqp.Delivery) {
 	}
 }
 
-func Publish(ch *amqp.Channel, queueName string, message string) error {
+func Publish(ch *amqp.Channel, config RabbitMQConfig, message string) error {
 	if err := ch.PublishWithContext(
 		context.Background(),
-		"",
-		queueName,
+		config.Exchange,
+		config.Queue,
 		false,
 		false,
 		amqp.Publishing{
@@ -57,8 +67,7 @@ func Publish(ch *amqp.Channel, queueName string, message string) error {
 			Body:        []byte(message),
 		},
 	); err != nil {
-		log.Printf("Failed to publish message: %s", err)
-		return err
+		return fmt.Errorf("failed to publish message: %w", err)
 	}
 	log.Printf("Message published: %s", message)
 	return nil
@@ -67,22 +76,22 @@ func Publish(ch *amqp.Channel, queueName string, message string) error {
 func ensureQueueExists(ch *amqp.Channel, queueName string) error {
 	_, err := ch.QueueDeclare(
 		queueName,
-		true,
-		false,
-		false,
-		false,
-		nil,
+		true,  // Durable
+		false, // Delete when unused
+		false, // Exclusive
+		false, // No-wait
+		nil,   // Arguments
 	)
 	if err != nil {
-		log.Printf("Failed to declare queue: %s", err)
+		return fmt.Errorf("failed to declare queue: %w", err)
 	}
-	return err
+	return nil
 }
 
 func consumeMessages(ch *amqp.Channel, queueName string, output chan<- amqp.Delivery) error {
 	messages, err := ch.Consume(
 		queueName,
-		"consumer-"+queueName, // Unique consumer tag
+		"consumer-"+queueName,
 		false,
 		false,
 		false,
@@ -90,8 +99,7 @@ func consumeMessages(ch *amqp.Channel, queueName string, output chan<- amqp.Deli
 		nil,
 	)
 	if err != nil {
-		log.Println("Error creating consumer with RabbitMQ:", err)
-		return err
+		return fmt.Errorf("error creating consumer with RabbitMQ: %w", err)
 	}
 
 	log.Printf("Consumer set up successfully for queue: %s", queueName)
@@ -102,4 +110,16 @@ func consumeMessages(ch *amqp.Channel, queueName string, output chan<- amqp.Deli
 	}()
 
 	return nil
+}
+
+func SetupGracefulShutdown(conn *amqp.Connection, ch *amqp.Channel) {
+	c := make(chan os.Signal, 1)
+	signal.Notify(c, os.Interrupt, syscall.SIGTERM)
+	go func() {
+		<-c
+		ch.Close()
+		conn.Close()
+		log.Println("RabbitMQ connection closed gracefully")
+		os.Exit(0)
+	}()
 }

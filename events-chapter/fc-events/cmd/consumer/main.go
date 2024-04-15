@@ -4,32 +4,43 @@ import (
 	"github.com/brunoliveiradev/GoExpertPostGrad/events-chapter/fc-events/pkg/rabbitmq"
 	amqp "github.com/rabbitmq/amqp091-go"
 	"log"
+	"math/rand"
+	"time"
 )
 
 func main() {
-	ch, err := setupChannel()
+	ch, err := rabbitmq.SetupChannel()
 	if err != nil {
-		log.Fatal(err)
+		log.Fatal("Failed to set up channel: ", err)
 	}
 	defer ch.Close()
 
 	msgs := make(chan amqp.Delivery)
-	go rabbitmq.Consumer(ch, msgs)
+	go rabbitmq.StartConsumer(ch, "queueName", msgs)
 
-	for msg := range msgs {
-		processMessage(msg)
+	processAndPublishMessages(ch, msgs)
+}
+
+func processAndPublishMessages(ch *amqp.Channel, msgs chan amqp.Delivery) {
+	go rabbitmq.ProcessMessages(msgs)
+
+	for i := 0; i < 10; i++ {
+		message := generateRandomString(10)
+		if err := rabbitmq.Publish(ch, "queueName", message); err != nil {
+			log.Printf("Error publishing message: %s", err)
+		} else {
+			log.Printf("Message published: %s", message)
+		}
+		time.Sleep(1 * time.Second)
 	}
 }
 
-func setupChannel() (*amqp.Channel, error) {
-	return rabbitmq.OpenChannel()
-}
-
-func processMessage(msg amqp.Delivery) {
-	log.Printf("Received a message: %s", msg.Body)
-	msg.Ack(false)
-
-	if string(msg.Body) == "exit" {
-		log.Fatal("Exit message received")
+func generateRandomString(n int) string {
+	rand.NewSource(time.Now().UnixNano())
+	letters := []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ")
+	b := make([]rune, n)
+	for i := range b {
+		b[i] = letters[rand.Intn(len(letters))]
 	}
+	return string(b)
 }

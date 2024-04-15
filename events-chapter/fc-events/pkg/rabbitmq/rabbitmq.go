@@ -10,13 +10,13 @@ import (
 	"syscall"
 )
 
-type RabbitMQConfig struct {
+type Config struct {
 	URL      string
 	Queue    string
 	Exchange string
 }
 
-func SetupChannel(config RabbitMQConfig) (*amqp.Channel, *amqp.Connection, error) {
+func SetupChannel(config Config) (*amqp.Channel, *amqp.Connection, error) {
 	conn, err := amqp.Dial(config.URL)
 	if err != nil {
 		log.Printf("Failed to connect to RabbitMQ: %v", err)
@@ -31,7 +31,7 @@ func SetupChannel(config RabbitMQConfig) (*amqp.Channel, *amqp.Connection, error
 	return ch, conn, nil
 }
 
-func StartConsumer(ch *amqp.Channel, config RabbitMQConfig, msgs chan<- amqp.Delivery) error {
+func StartConsumer(ch *amqp.Channel, config Config, msgs chan<- amqp.Delivery) error {
 	if err := ensureQueueExists(ch, config.Queue); err != nil {
 		return fmt.Errorf("failed to ensure queue exists: %w", err)
 	}
@@ -55,7 +55,7 @@ func ProcessMessages(msgs chan amqp.Delivery) {
 	}
 }
 
-func Publish(ch *amqp.Channel, config RabbitMQConfig, message string) error {
+func Publish(ch *amqp.Channel, config Config, message string) error {
 	if err := ch.PublishWithContext(
 		context.Background(),
 		config.Exchange,

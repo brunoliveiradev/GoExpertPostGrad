@@ -10,7 +10,7 @@ import (
 )
 
 func main() {
-	config := rabbitmq.RabbitMQConfig{
+	config := rabbitmq.Config{
 		URL:      getEnv("RABBITMQ_URL", "amqp://guest:guest@localhost:5672/"),
 		Queue:    getEnv("RABBITMQ_QUEUE", "queueName"),
 		Exchange: getEnv("RABBITMQ_EXCHANGE", ""), // Exchange name or leave as empty string for default
@@ -33,7 +33,7 @@ func main() {
 	processAndPublishMessages(ch, config, msgs)
 }
 
-func processAndPublishMessages(ch *amqp.Channel, config rabbitmq.RabbitMQConfig, msgs chan amqp.Delivery) {
+func processAndPublishMessages(ch *amqp.Channel, config rabbitmq.Config, msgs chan amqp.Delivery) {
 	go rabbitmq.ProcessMessages(msgs)
 
 	for i := 0; i < 10; i++ {
@@ -48,7 +48,7 @@ func processAndPublishMessages(ch *amqp.Channel, config rabbitmq.RabbitMQConfig,
 }
 
 func generateRandomString(n int) string {
-	rand.Seed(time.Now().UnixNano())
+	rand.NewSource(time.Now().UnixNano())
 	letters := []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ")
 	b := make([]rune, n)
 	for i := range b {

@@ -16,9 +16,8 @@ func NewCategory(db *sql.DB) *Category {
 	return &Category{db: db}
 }
 
-func (c *Category) CreateCategory(name string, description string) (Category, error) {
-	newRandomUuid, _ := uuid.NewRandom()
-	id := newRandomUuid.String()
+func (c *Category) Create(name string, description string) (Category, error) {
+	id := uuid.New().String()
 	_, err := c.db.Exec("INSERT INTO categories (id, name, description) VALUES ($1, $2, $3)", id, name, description)
 	if err != nil {
 		return Category{}, err
@@ -26,7 +25,7 @@ func (c *Category) CreateCategory(name string, description string) (Category, er
 	return Category{ID: id, Name: name, Description: description}, nil
 }
 
-func (c *Category) GetAllCategories() ([]Category, error) {
+func (c *Category) GetAll() ([]Category, error) {
 	rows, err := c.db.Query("SELECT * FROM categories")
 	if err != nil {
 		return nil, err
@@ -43,4 +42,14 @@ func (c *Category) GetAllCategories() ([]Category, error) {
 		categories = append(categories, category)
 	}
 	return categories, nil
+}
+
+func (c *Category) FindByCourseID(courseID string) (Category, error) {
+	var category Category
+	query := `SELECT categories.id, categories.name, categories.description FROM categories JOIN courses ON categories.id = courses.category_id WHERE courses.id = $1`
+	err := c.db.QueryRow(query, courseID).Scan(&category.ID, &category.Name, &category.Description)
+	if err != nil {
+		return Category{}, err
+	}
+	return category, nil
 }

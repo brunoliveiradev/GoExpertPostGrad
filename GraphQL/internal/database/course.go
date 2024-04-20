@@ -18,9 +18,8 @@ func NewCourse(db *sql.DB) *Course {
 }
 
 func (c *Course) CreateCourse(name string, description string, categoryID string) (Course, error) {
-	newRandomUuid, _ := uuid.NewRandom()
-	id := newRandomUuid.String()
-	_, err := c.db.Exec("INSERT INTO courses (id, name, description, category_id) VALUES ($1, $2, $3, $4)", id, name, description, categoryID)
+	id := uuid.New().String()
+	_, err := c.db.Exec("INSERT INTO courses (id, name, description, category_id) VALUES (?, ?, ?, ?)", id, name, description, categoryID)
 	if err != nil {
 		return Course{}, err
 	}
@@ -46,4 +45,23 @@ func (c *Course) GetAllCourses() ([]Course, error) {
 	}
 	return courses, nil
 
+}
+
+func (c *Course) FindByCategoryID(categoryID string) ([]Course, error) {
+	rows, err := c.db.Query("SELECT * FROM courses WHERE category_id = $1", categoryID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var courses []Course
+	for rows.Next() {
+		var course Course
+		err := rows.Scan(&course.ID, &course.Name, &course.Description, &course.CategoryID)
+		if err != nil {
+			return nil, err
+		}
+		courses = append(courses, course)
+	}
+	return courses, nil
 }

@@ -26,6 +26,7 @@ func main() {
 
 	srv := handler.NewDefaultServer(graph.NewExecutableSchema(graph.Config{Resolvers: &graph.Resolver{
 		CategoryDB: database.NewCategory(db),
+		CourseDB:   database.NewCourse(db),
 	}}))
 
 	http.Handle("/", playground.Handler("GraphQL playground", "/query"))
@@ -50,5 +51,6 @@ func InitSQLiteDB() *sql.DB {
 	if err != nil {
 		log.Fatal(err)
 	}
+
 	return db
 }

@@ -9,6 +9,7 @@ package main
 import (
 	"database/sql"
 	"github.com/brunoliveiradev/GoExpertPostGrad/wire/product"
+	"github.com/google/wire"
 )
 
 import (
@@ -22,3 +23,7 @@ func NewProductUseCase(db *sql.DB) *product.ProductUseCase {
 	productUseCase := product.NewProductUseCase(repository)
 	return productUseCase
 }
+
+// wire.go:
+
+var setRepoDependency = wire.NewSet(product.NewProductRepository, wire.Bind(new(product.ProductRepositoryInterface), new(*product.Repository)))

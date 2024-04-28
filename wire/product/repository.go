@@ -2,6 +2,10 @@ package product
 
 import "database/sql"
 
+type ProductRepositoryInterface interface {
+	GetProductByID(id int) (*Product, error)
+}
+
 type Repository struct {
 	db *sql.DB
 }

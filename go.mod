@@ -10,7 +10,7 @@ require (
 	github.com/mattn/go-sqlite3 v1.14.22
 	github.com/rabbitmq/amqp091-go v1.9.0
 	github.com/stretchr/testify v1.9.0
-	github.com/vektah/gqlparser/v2 v2.5.11
+	github.com/vektah/gqlparser/v2 v2.5.15
 	google.golang.org/grpc v1.63.2
 	google.golang.org/protobuf v1.33.0
 	gorm.io/driver/mysql v1.5.6
